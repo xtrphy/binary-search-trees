@@ -91,6 +91,146 @@ class Tree {
 
     return minValue;
   }
+
+  find(value) {
+    let current = this.root;
+
+    while (current !== null) {
+      if (current.data === value) {
+        return current;
+      }
+
+      if (value < current.data) {
+        current = current.left;
+      } else {
+        current = current.right;
+      }
+    }
+
+    return null;
+  }
+
+  levelOrder(callback) {
+    if (typeof callback !== 'function') {
+      throw new Error('Need to pass callback function as an argument');
+    }
+
+    let queue = [];
+    if (this.root) queue.push(this.root);
+
+    while (queue.length > 0) {
+      let currentNode = queue.shift();
+      callback(currentNode);
+
+      if (currentNode.left) queue.push(currentNode.left);
+      if (currentNode.right) queue.push(currentNode.right);
+    }
+  }
+
+  inOrder(callback) {
+    if (typeof callback !== 'function') {
+      throw new Error('Need to pass callback function as an argument');
+    }
+
+    function traverse(node) {
+      if (!node) return;
+      traverse(node.left);
+      callback(node);
+      traverse(node.right);
+    }
+
+    traverse(this.root);
+  }
+
+  preOrder(callback) {
+    if (typeof callback !== 'function') {
+      throw new Error('Need to pass callback function as an argument');
+    }
+
+    function traverse(node) {
+      if (!node) return;
+      callback(node);
+      traverse(node.left);
+      traverse(node.right);
+    }
+
+    traverse(this.root);
+  }
+
+  postOrder(callback) {
+    if (typeof callback !== 'function') {
+      throw new Error('Need to pass callback function as an argument');
+    }
+
+    function traverse(node) {
+      if (!node) return;
+      traverse(node.left)
+      traverse(node.right);
+      callback(node);
+    }
+
+    traverse(this.root);
+  }
+
+  height(node) {
+    if (!node) return -1;
+
+    let leftHeight = this.height(node.left);
+    let rightHeight = this.height(node.right);
+
+    return Math.max(leftHeight, rightHeight) + 1;
+  }
+
+  depth(node) {
+    if (!node) return -1;
+
+    let current = this.root;
+    let depth = 0;
+
+    while (current !== null) {
+      if (node.data === current.data) {
+        return depth;
+      }
+
+      if (node.data < current.data) {
+        current = current.left;
+      } else {
+        current = current.right;
+      }
+
+      depth++;
+    }
+
+    return -1;
+  }
+
+  isBalanced() {
+    function checkBalance(node) {
+      if (!node) return 0;
+
+      let leftHeight = checkBalance(node.left);
+      let rightHeight = checkBalance(node.right);
+
+      if (leftHeight === -1 || rightHeight === -1 || Math.abs(leftHeight - rightHeight) > 1) {
+        return -1;
+      }
+
+      return Math.max(leftHeight, rightHeight) + 1;
+    }
+
+    return checkBalance(this.root) !== -1;
+  }
+
+  getSortedArray() {
+    let result = [];
+    this.inOrder(node => result.push(node.data));
+    return result;
+  }
+
+  rebalance() {
+    let sortedArray = this.getSortedArray();
+    this.root = this.buildTree(sortedArray);
+  }
 }
 
 const prettyPrint = (node, prefix = "", isLeft = true) => {
@@ -106,15 +246,47 @@ const prettyPrint = (node, prefix = "", isLeft = true) => {
   }
 };
 
+function getRandomArray(size) {
+  return Array.from({ length: size }, () => Math.floor(Math.random() * 100));
+}
 
-let tree = new Tree([1, 7, 4, 23, 8, 9, 4, 3, 5, 7, 9, 67, 6345, 324]);
-console.log('Original Tree:');
-prettyPrint(tree.root);
+let randomNumbers = getRandomArray(100);
+let tree = new Tree(randomNumbers);
 
-tree.deleteItem(8);
-console.log('After deleting 8:');
-prettyPrint(tree.root);
+console.log('Tree is balanced:', tree.isBalanced());
 
-tree.deleteItem(100);
-console.log('After trying to delete 100 (which is not in the tree):');
-prettyPrint(tree.root);
+console.log('Level-order:');
+tree.levelOrder(node => console.log(node.data));
+
+console.log('Pre-order:');
+tree.preOrder(node => console.log(node.data));
+
+console.log('Post-order:');
+tree.postOrder(node => console.log(node.data));
+
+console.log('In-order:');
+tree.inOrder(node => console.log(node.data));
+
+tree.insert(150);
+tree.insert(200);
+tree.insert(250);
+tree.insert(300);
+tree.insert(350);
+
+console.log('Tree is balanced after inserting large numbers:', tree.isBalanced());
+
+tree.rebalance();
+
+console.log('Tree is balanced after rebalancing:', tree.isBalanced());
+
+console.log("Level-order after rebalancing:");
+tree.levelOrder(node => console.log(node.data));
+
+console.log("Pre-order after rebalancing:");
+tree.preOrder(node => console.log(node.data));
+
+console.log("Post-order after rebalancing:");
+tree.postOrder(node => console.log(node.data));
+
+console.log("In-order after rebalancing:");
+tree.inOrder(node => console.log(node.data));
